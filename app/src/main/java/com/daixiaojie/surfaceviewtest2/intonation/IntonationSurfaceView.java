@@ -135,8 +135,8 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
             long end = System.currentTimeMillis();
 
             try {
-                if (end - start < 33) {
-                    Thread.sleep(33 - (end - start));
+                if (end - start < 200) {
+                    Thread.sleep(200 - (end - start));
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -166,12 +166,18 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
 
     private void drawline(long updateTime) {
         System.out.println("updateTIme:"  + updateTime);
+        int i = 0;
         for (IntonationLine line : lines) {
             if (updateTime >= (line.getAppearTime() * 1000)){
-                System.out.println("jinlaile222：" + line.getX() + "--" + updateTime + "---" + (line.getAppearTime() * 1000) + mSpeed);
-                line.setX(line.getX() - (int)(updateTime * 0.001 - line.getAppearTime()*1.0*mSpeed));
+                if (i == 0)
+                System.out.println("jinlaile222：" + line.getX() + "--" + updateTime + "---" + line.getAppearTime() + "--" + mSpeed + "--" + mWidth);
+                int x = line.getX() - (int)((updateTime * 0.001 - line.getAppearTime())*1.0*mSpeed);
+                if (i == 0)
+                System.out.println("x:" + x);
+                line.setX(x);
                 System.out.println("jinlaile：" + line.getX());
                 line.draw(mCanvas, mPaint);
+                i++;
             }
         }
     }
@@ -236,6 +242,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         indicator = new Indicator(getContext(), mWidth, mHeight, indBitmap);
         Data data = LineBean.getLineList();
         lines = new ArrayList<>();
+        System.out.println("speed:" + mSpeed);
         for (IntonationLine line : data.getData()) {
             lines.add(new IntonationLine(mWidth,mHeight,data.getCents_min(), data.getCents_max(), mSpeed, line));
         }
