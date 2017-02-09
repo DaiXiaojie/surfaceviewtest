@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.os.Build;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.WindowManager;
 
 import java.util.Date;
 
@@ -66,10 +65,15 @@ public class CircleChangeSufaceView extends SurfaceView implements SurfaceHolder
             surfaceHolder = holder;
             this.context = context;
 
-            paint = new Paint();
+            /*paint = new Paint();
             paint.setColor(Color.GREEN);
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(5.0f);
+            paint.setStrokeWidth(5.0f);*/
+            paint = new Paint();
+            paint.setColor(Color.WHITE);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setAntiAlias(true);
+            paint.setDither(true);
         }
 
         @Override
@@ -96,8 +100,12 @@ public class CircleChangeSufaceView extends SurfaceView implements SurfaceHolder
 
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         private void doDraw(Canvas canvas) {
-            canvas.drawColor(Color.WHITE);
-            canvas.drawRoundRect(left, top, right, bottom, 10, 10, paint);
+            canvas.save(Canvas.MATRIX_SAVE_FLAG);
+            canvas.drawColor(Color.BLACK);
+            canvas.drawRect(300, 100, 600, 400, paint);
+//        canvas.drawBitmap(line, null, rect, null);
+            canvas.restore();
+            /*canvas.drawRoundRect(left, top, right, bottom, 10, 10, paint);
             canvas.drawRoundRect(left+250, top+50, right+250, bottom+50, 10, 10, paint);
             canvas.drawRoundRect(left+500, top+100, right+500, bottom+100, 10, 10, paint);
             canvas.drawRoundRect(left+750, top, right+600, bottom, 10, 10, paint);
@@ -107,7 +115,7 @@ public class CircleChangeSufaceView extends SurfaceView implements SurfaceHolder
                     .getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getWidth()) {
                 left=-500;
                 right=-250;
-            }
+            }*/
 //            canvas.translate(300, 300);
 //            canvas.drawCircle(0, 0, radius++, paint);
 //            if (radius >= 200) {
