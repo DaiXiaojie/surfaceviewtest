@@ -1,5 +1,6 @@
 package com.daixiaojie.surfaceviewtest2.intonation;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,8 +12,10 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.animation.DecelerateInterpolator;
 
 import com.daixiaojie.surfaceviewtest2.R;
+import com.daixiaojie.surfaceviewtest2.SparkManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -64,6 +67,11 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private RectF rect;
     private int lineWidth;
 
+    /**
+     * 粒子效果
+     */
+    private SparkManager sparkManager;
+
     private int minCents;
     private int maxCents;
 
@@ -100,6 +108,8 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         mPaint.setAntiAlias(true);
         mPaint.setDither(true);
 
+        sparkManager = new SparkManager();
+
         initBitmaps();
         initLine();
     }
@@ -129,12 +139,14 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
 
     @Override
     public void run() {
+        // 火花数组
+        int[][] sparks = new int[400][10];
         startTime = System.currentTimeMillis();
         while (isRunning) {
             long start = System.currentTimeMillis();
             long updateTime = start-startTime;
             logic();
-            draw(updateTime);
+            draw(updateTime, sparks);
             long end = System.currentTimeMillis();
             try {
                 if (end - start < 20) {
@@ -146,7 +158,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         }
     }
 
-    private void draw(long updateTime) {
+    private void draw(long updateTime, int[][] sparks) {
         try {
             // 获得canvas
 
@@ -154,9 +166,13 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
 
             if (mCanvas != null) {
                 // drawSomething..
-                drawBg();
-                drawline(updateTime);
-                drawIndicator();
+                synchronized (mHolder) {
+                    drawBg();
+                    drawSplitLine();
+                    drawline(updateTime);
+                    drawIndicator();
+                    drawSpark(sparks);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,6 +181,21 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
                 mHolder.unlockCanvasAndPost(mCanvas);
         }
 
+    }
+
+    private void drawSplitLine() {
+        RectF rect = new RectF(mWidth / 8, getY(), mWidth / 8 + 4, mHeight);
+        mCanvas.drawRect(rect, mPaint);
+    }
+
+    private void drawSpark(int[][] sparks) {
+        // 循环绘制所有火花
+        sparkManager.isActive = true;
+        for (int[] n : sparks)
+        {
+            n = sparkManager.drawSpark(mCanvas, mWidth / 8, indicator.getY() + indicator.getmHeight() / 2, n, mWidth);
+        }
+        sparkManager.isActive = false;
     }
 
     private void drawline(long updateTime) {
@@ -187,7 +218,9 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void drawIndicator() {
-        indicator.draw(mCanvas);
+        if (indicator.getY() != indicator.getOldY()) {
+            indicator.draw(mCanvas);
+        }
     }
 
     private void drawBg() {
@@ -258,7 +291,22 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
             currentCents = currentCents > maxCents ? maxCents : currentCents;
             currentCents = currentCents < minCents ? minCents : currentCents;
             System.out.println("currentCents:"  + currentCents + "---Y:" + Util.getY(currentCents, mWidth, minCents, maxCents));
-            indicator.setY(Util.getY(currentCents, mWidth, minCents, maxCents));
+            int targetY = Util.getY(currentCents, mHeight, minCents, maxCents);
+            targetY = targetY < (int)getY() ? (int)getY() : targetY;
+            targetY = targetY > (int)getY() + mHeight - indicator.getmHeight() ? (int)getY() + mHeight - indicator.getmHeight(): targetY;
+            System.out.println("targetY:" + targetY);
+            int duration = 300;
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat(indicator.getY(), targetY);
+            valueAnimator.setDuration(duration).start();
+            valueAnimator.setInterpolator(new DecelerateInterpolator());
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (Float) animation.getAnimatedValue();
+                    indicator.setY((int)value);
+                }
+            });
+//            indicator.setY((int)value);
         }
     }
 }

@@ -78,7 +78,7 @@ public class SparkView
                         // 循环绘制所有火花
                         for (int[] n : sparks)
                         {
-                            n = sparkManager.drawSpark(mCanvas, (int) X, (int) Y, n);
+                            n = sparkManager.drawSpark(mCanvas, (int) X, (int) Y, n, 1080);
                         }
 
                         // 控制帧数

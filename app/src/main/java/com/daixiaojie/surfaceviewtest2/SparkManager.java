@@ -53,7 +53,7 @@ public class SparkManager
         setSparkPaint();
     }
 
-    public int[] drawSpark( Canvas canvas, int x, int y, int[] store )
+    public int[] drawSpark( Canvas canvas, int x, int y, int[] store, int width)
     {
 
         this.X = x;
@@ -64,13 +64,18 @@ public class SparkManager
         // 初始化火花
         if (mCurDistance == mDistance && isActive)
         {
-            mDistance = getRandom(SparkView.WIDTH / 4, mRandom.nextInt(15)) + 1;
+            mDistance = getRandom(width / 4, mRandom.nextInt(15)) + 1;
+//            mDistance = getRandom(SparkView.WIDTH / 4, mRandom.nextInt(15)) + 1;
             mCurDistance = 0;
 
             start = new Point(X, Y);
             end = getRandomPoint(start.x, start.y, (int) mDistance);
+            c1 = getRandomPoint(start.x, start.y, mRandom.nextInt(width / 16));
+            c2 = getRandomPoint(end.x, end.y, mRandom.nextInt(width / 16));
+/*
             c1 = getRandomPoint(start.x, start.y, mRandom.nextInt(SparkView.WIDTH / 16));
             c2 = getRandomPoint(end.x, end.y, mRandom.nextInt(SparkView.WIDTH / 16));
+*/
         }
         // 恢复火花路径
         else

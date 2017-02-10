@@ -18,9 +18,9 @@ public class MainActivity extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 // /*    setContentView(new CircleChangeSufaceView(this));
-        SparkView sparkView = new SparkView(this);
+//        SparkView sparkView = new SparkView(this);
 //        MyStockIndicatorView view = new MyStockIndicatorView(this);
-        setContentView(sparkView);
+//        setContentView(sparkView);
 //        setContentView(R.layout.activity_main);
 //        relativeLayout = (RelativeLayout) findViewById(R.id.relativelayout2);
 //        SparkView sparkView = new SparkView(this);*/
@@ -29,10 +29,10 @@ public class MainActivity extends Activity{
         requestWindowFeature(Window.FEATURE_NO_TITLE);*/
 //        intonationSurfaceView = new IntonationSurfaceView(this);
 //        setContentView(intonationSurfaceView);
-//        setContentView(R.layout.activity_main);
-//        intonationSurfaceView = (IntonationSurfaceView) findViewById(R.id.intonationview);
-//        timeCount = new TimeCount(1000000, 500);
-//        timeCount.start();
+        setContentView(R.layout.activity_main);
+        intonationSurfaceView = (IntonationSurfaceView) findViewById(R.id.intonationview);
+        timeCount = new TimeCount(500000, 300);
+        timeCount.start();
     }
 
     class TimeCount extends CountDownTimer {

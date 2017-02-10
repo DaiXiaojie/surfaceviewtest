@@ -80,4 +80,20 @@ public class Indicator {
     public void setmHeight(int mHeight) {
         this.mHeight = mHeight;
     }
+
+    public int getOldX() {
+        return oldX;
+    }
+
+    public void setOldX(int oldX) {
+        this.oldX = oldX;
+    }
+
+    public int getOldY() {
+        return oldY;
+    }
+
+    public void setOldY(int oldY) {
+        this.oldY = oldY;
+    }
 }
