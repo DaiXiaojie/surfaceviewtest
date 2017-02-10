@@ -6,11 +6,16 @@
     android:layout_height="match_parent"
     tools:context="com.daixiaojie.surfaceviewtest2.MainActivity">
 
+    <com.daixiaojie.surfaceviewtest2.intonation.IntonationSurfaceView
+        android:id="@+id/intonationview"
+        android:layout_width="match_parent"
+        android:layout_height="100dp" />
+    
     <!--<TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!" />-->
-    <RelativeLayout
+    <!--<RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="90dp"
         android:alpha="0.2"
@@ -35,7 +40,7 @@
                 android:src="@mipmap/chart_work_play"
                 android:layout_toLeftOf="@id/v_splitline"/>
 
-        </RelativeLayout>
-    </RelativeLayout>
+        </RelativeLayout>-->
+    <!--</RelativeLayout>-->
 
 </RelativeLayout>

@@ -14,7 +14,7 @@ import android.view.SurfaceView;
 
 import com.daixiaojie.surfaceviewtest2.R;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -64,11 +64,14 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private RectF rect;
     private int lineWidth;
 
+    private int minCents;
+    private int maxCents;
+
     private List<IntonationLine> lines;
 
     private int mSpeed = Util.dp2px(getContext(), 180);
 
-    private List<IntonationLine> mNeedRemovelines = new ArrayList<>();
+    private List<IntonationLine> mNeedRemovelines = new LinkedList<>();
     private int needRemoveLineCount = 0;
 
     private long startTime;
@@ -133,10 +136,9 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
             logic();
             draw(updateTime);
             long end = System.currentTimeMillis();
-
             try {
-                if (end - start < 200) {
-                    Thread.sleep(200 - (end - start));
+                if (end - start < 20) {
+                    Thread.sleep(20 - (end - start));
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -147,14 +149,14 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private void draw(long updateTime) {
         try {
             // 获得canvas
+
             mCanvas = mHolder.lockCanvas();
+
             if (mCanvas != null) {
                 // drawSomething..
-
                 drawBg();
-                drawIndicator();
                 drawline(updateTime);
-
+                drawIndicator();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,22 +164,24 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
             if (mCanvas != null)
                 mHolder.unlockCanvasAndPost(mCanvas);
         }
+
     }
 
     private void drawline(long updateTime) {
-        System.out.println("updateTIme:"  + updateTime);
         int i = 0;
         for (IntonationLine line : lines) {
             if (updateTime >= (line.getAppearTime() * 1000)){
+               /* if (i == 0)
+                System.out.println("jinlaile222：" + line.getX() + "--" + updateTime + "---" + line.getAppearTime() + "--" + mSpeed + "--" + mWidth);*/
+                int x = mWidth - (int)((updateTime * 0.001 - line.getAppearTime())*1.0*mSpeed);
                 if (i == 0)
-                System.out.println("jinlaile222：" + line.getX() + "--" + updateTime + "---" + line.getAppearTime() + "--" + mSpeed + "--" + mWidth);
-                int x = line.getX() - (int)((updateTime * 0.001 - line.getAppearTime())*1.0*mSpeed);
-                if (i == 0)
-                System.out.println("x:" + x);
+                System.out.println("x:" + x + "--" + "time:" + (updateTime * 0.001 - line.getAppearTime()));
                 line.setX(x);
-                System.out.println("jinlaile：" + line.getX());
+//                System.out.println("jinlaile：" + line.getX());
                 line.draw(mCanvas, mPaint);
                 i++;
+            } else {
+                break;
             }
         }
     }
@@ -205,7 +209,6 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         }
         lines.removeAll(mNeedRemovelines);
         mNeedRemovelines.clear();
-
     }
 
     private void initLine() {
@@ -241,10 +244,21 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         areaRect.set(0, 0, w, h);
         indicator = new Indicator(getContext(), mWidth, mHeight, indBitmap);
         Data data = LineBean.getLineList();
-        lines = new ArrayList<>();
+        minCents = data.getCents_min();
+        maxCents = data.getCents_max();
+        lines = new LinkedList<>();
         System.out.println("speed:" + mSpeed);
         for (IntonationLine line : data.getData()) {
             lines.add(new IntonationLine(mWidth,mHeight,data.getCents_min(), data.getCents_max(), mSpeed, line));
+        }
+    }
+
+    public void getCurrentCents(int currentCents) {
+        if ((minCents > 0) && (maxCents >= minCents)) {
+            currentCents = currentCents > maxCents ? maxCents : currentCents;
+            currentCents = currentCents < minCents ? minCents : currentCents;
+            System.out.println("currentCents:"  + currentCents + "---Y:" + Util.getY(currentCents, mWidth, minCents, maxCents));
+            indicator.setY(Util.getY(currentCents, mWidth, minCents, maxCents));
         }
     }
 }

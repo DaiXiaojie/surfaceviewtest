@@ -39,7 +39,7 @@ public class SparkView
     {
         super(context);
         // 关闭硬件加速
-        setLayerType(LAYER_TYPE_SOFTWARE, null);
+//        setLayerType(LAYER_TYPE_SOFTWARE, null);
 
         // 设置视图宽高（像素）
         DisplayMetrics metric = new DisplayMetrics();
@@ -92,10 +92,13 @@ public class SparkView
             }
             finally
             {
+                long sTime = System.currentTimeMillis();
                 if (mCanvas != null)
                 {
                     mHolder.unlockCanvasAndPost(mCanvas);
                 }
+                long eTime = System.currentTimeMillis();
+                System.out.println("drawTime555:" + (eTime-sTime));
             }
         }
     }

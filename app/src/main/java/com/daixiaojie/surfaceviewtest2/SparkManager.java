@@ -30,7 +30,7 @@ public class SparkManager
     private float mCurDistance = 0;
 
     // 火花半径
-    private static final float SPARK_RADIUS = 5.0F;
+    private static final float SPARK_RADIUS = 3.0F;
 
     // 火花外侧阴影大小
     private static final float BLUR_SIZE = 5.0F;

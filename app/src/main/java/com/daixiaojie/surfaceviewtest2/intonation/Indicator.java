@@ -11,10 +11,12 @@ import android.graphics.RectF;
 
 public class Indicator {
     private static final float IND_POS_HEIGHT = 1 / 2f;
-    private static final int IND_SIZE = 30;
+    private static final int IND_SIZE = 15;
 
     private int x;
     private int y;
+    private int oldX;
+    private int oldY;
     private int mWidth;
     private int mHeight;
     private Bitmap indBitMap;
@@ -37,6 +39,10 @@ public class Indicator {
     }
 
     public void draw(Canvas canvas) {
+//        float duration = 30;
+//        float deltaX = x - oldX;
+//        float deltaY = y - oldY;
+//        canvas.drawBitmap(indBitMap, x+deltaX*10/duration, y+deltaY*10/duration, null);
         rect.set(x, y, x + mWidth, y + mHeight);
         canvas.drawBitmap(indBitMap, null, rect, null);
     }
@@ -46,6 +52,7 @@ public class Indicator {
     }
 
     public void setX(int x) {
+        oldX = this.x;
         this.x = x;
     }
 
@@ -54,6 +61,7 @@ public class Indicator {
     }
 
     public void setY(int y) {
+        oldY = this.y;
         this.y = y;
     }
 
