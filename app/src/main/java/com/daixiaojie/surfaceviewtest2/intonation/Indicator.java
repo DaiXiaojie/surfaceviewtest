@@ -23,11 +23,11 @@ public class Indicator {
     private RectF rect = new RectF();
     private int mIntonationHeight;
 
-    public Indicator(Context context, int intonationWidth, int intonationHeight, Bitmap bitmap) {
+    public Indicator(Context context, int intonationX, int intonationyY, int intonationWidth, int intonationHeight, Bitmap bitmap) {
         this.indBitMap = bitmap;
-        x = intonationWidth / 8 - bitmap.getWidth();
+        x = intonationX + intonationWidth / 8 - bitmap.getWidth();
 //        y = (int) (intonationHeight * IND_POS_HEIGHT);
-        y = intonationHeight /2 - bitmap.getHeight();
+        y = intonationX + intonationHeight /2 - bitmap.getHeight()/2;
         mIntonationHeight = intonationHeight;
         mWidth = Util.dp2px(context, IND_SIZE);
         mHeight = (int) (mWidth * 1.0f / bitmap.getWidth() * bitmap.getHeight());

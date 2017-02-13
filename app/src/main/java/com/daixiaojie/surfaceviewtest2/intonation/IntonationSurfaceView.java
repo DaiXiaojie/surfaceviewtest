@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.animation.DecelerateInterpolator;
@@ -25,6 +26,18 @@ import java.util.List;
  */
 
 public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+    public static final int STATE_IDLE = -1;
+    public static final int STATE_INIT = 0;
+    public static final int STATE_RUNNING = 1;
+    public static final int STATE_PAUSE = 2;
+    public static final int STATE_FINISH = 3;
+
+    private int mState;
+
+    public static final Boolean IS_DEBUG = true;
+
+    private long frameNum;
+
     private SurfaceHolder mHolder;
     /**
      * 与SurfaceHolder绑定的Canvas
@@ -75,6 +88,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private int minCents;
     private int maxCents;
 
+    private Data data;
     private List<IntonationLine> lines;
 
     private int mSpeed = Util.dp2px(getContext(), 180);
@@ -82,7 +96,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private List<IntonationLine> mNeedRemovelines = new LinkedList<>();
     private int needRemoveLineCount = 0;
 
-    private long startTime;
+    private long updateTime;
 
     public IntonationSurfaceView(Context context) {
         this(context, null);
@@ -106,18 +120,17 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         mPaint.setColor(Color.WHITE);
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setAntiAlias(true);
+        mPaint.setFilterBitmap(true);//对位图进行滤波处理
         mPaint.setDither(true);
 
         sparkManager = new SparkManager();
 
         initBitmaps();
-        initLine();
     }
 
     private void initBitmaps() {
         mBg = loadImageByResId(R.mipmap.bg);
         indBitmap = loadImageByResId(R.mipmap.chart_work_play);
-//        lineBitmap = loadImageByResId(R.mipmap.line);
     }
 
     @Override
@@ -141,10 +154,10 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     public void run() {
         // 火花数组
         int[][] sparks = new int[400][10];
-        startTime = System.currentTimeMillis();
+//        startTime = System.currentTimeMillis();
         while (isRunning) {
             long start = System.currentTimeMillis();
-            long updateTime = start-startTime;
+//            long updateTime = start-startTime;
             logic();
             draw(updateTime, sparks);
             long end = System.currentTimeMillis();
@@ -154,6 +167,11 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+            long realEnd = System.currentTimeMillis();
+            frameNum = 1000 / (realEnd - start);
+            if (IS_DEBUG) {
+                Log.i("IntonationFps:", String.valueOf(frameNum));
             }
         }
     }
@@ -199,20 +217,22 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void drawline(long updateTime) {
-        int i = 0;
-        for (IntonationLine line : lines) {
-            if (updateTime >= (line.getAppearTime() * 1000)){
+        if (mState == STATE_RUNNING || mState == STATE_PAUSE) {
+            int i = 0;
+            for (IntonationLine line : lines) {
+                if (updateTime >= (line.getAppearTime() * 1000)){
                /* if (i == 0)
                 System.out.println("jinlaile222：" + line.getX() + "--" + updateTime + "---" + line.getAppearTime() + "--" + mSpeed + "--" + mWidth);*/
-                int x = mWidth - (int)((updateTime * 0.001 - line.getAppearTime())*1.0*mSpeed);
-                if (i == 0)
-                System.out.println("x:" + x + "--" + "time:" + (updateTime * 0.001 - line.getAppearTime()));
-                line.setX(x);
+                    int x = mWidth - (int)((updateTime * 0.001 - line.getAppearTime())*1.0*mSpeed);
+                    if (i == 0)
+                        System.out.println("x:" + x + "--" + "time:" + (updateTime * 0.001 - line.getAppearTime()));
+                    line.setX(x);
 //                System.out.println("jinlaile：" + line.getX());
-                line.draw(mCanvas, mPaint);
-                i++;
-            } else {
-                break;
+                    line.draw(mCanvas, mPaint);
+                    i++;
+                } else {
+                    break;
+                }
             }
         }
     }
@@ -232,31 +252,18 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void logicLine() {
-        for (IntonationLine line : lines) {
-            if (line.getX() < -line.getLineWidth()) {
-                mNeedRemovelines.add(line);
-                needRemoveLineCount++;
-                continue;
-            }
+       /* if (mState == STATE_RUNNING) {
+            for (IntonationLine line : lines) {
+                if (line.getX() < -line.getLineWidth()) {
+                    mNeedRemovelines.add(line);
+                    needRemoveLineCount++;
+                    continue;
+                }
 //            line.setX(line.getX() - (mSpeed / 30));
-        }
-        lines.removeAll(mNeedRemovelines);
-        mNeedRemovelines.clear();
-    }
-
-    private void initLine() {
-        /*lines.clear();
-        lines.add(LineBean.getLineList().get(0));
-        mNeedRemovelines.clear();*/
-       /* Data data = new Data();
-        data.setMax_cents(7100);
-        data.setMin_cents(5400);
-        List<IntonationLine> temps = new ArrayList<>();
-        IntonationLine line = new IntonationLine(getContext(), 1080, 1700, data.getMin_cents(), data.getMax_cents(), mSpeed);
-        temps.add(line);
-        data.setHeihei(temps);
-        lines.addAll(data.getHeihei());*/
-//        lines = LineBean.getLineList();
+            }
+            lines.removeAll(mNeedRemovelines);
+            mNeedRemovelines.clear();
+        }*/
     }
 
     /**
@@ -275,15 +282,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         mWidth = w;
         mHeight = h;
         areaRect.set(0, 0, w, h);
-        indicator = new Indicator(getContext(), mWidth, mHeight, indBitmap);
-        Data data = LineBean.getLineList();
-        minCents = data.getCents_min();
-        maxCents = data.getCents_max();
-        lines = new LinkedList<>();
-        System.out.println("speed:" + mSpeed);
-        for (IntonationLine line : data.getData()) {
-            lines.add(new IntonationLine(mWidth,mHeight,data.getCents_min(), data.getCents_max(), mSpeed, line));
-        }
+        indicator = new Indicator(getContext(), (int)getX(), (int)getY(), mWidth, mHeight, indBitmap);
     }
 
     public void getCurrentCents(int currentCents) {
@@ -303,10 +302,65 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float value = (Float) animation.getAnimatedValue();
-                    indicator.setY((int)value);
+//                    if (value < (int)getY() + mHeight - indicator.getmHeight() && value > (int)getY()) {
+                        System.out.println("value:" + (int)value);
+                        indicator.setY((int)value);
+//                    }
                 }
             });
 //            indicator.setY((int)value);
         }
     }
+
+    public void onStart(Data data) {
+        this.data = data;
+        mState = STATE_RUNNING;
+        minCents = this.data.getCents_min();
+        maxCents = this.data.getCents_max();
+        if (lines == null) {
+            lines = new LinkedList<>();
+        } else {
+            lines.clear();
+        }
+        System.out.println("speed:" + mSpeed);
+        for (IntonationLine line : this.data.getData()) {
+            lines.add(new IntonationLine(mWidth,mHeight,data.getCents_min(), data.getCents_max(), mSpeed, line));
+        }
+        this.data.getData().clear();
+        this.data.getData().addAll(lines);//装载成本地化后的lines数据
+    }
+
+    public void onPause() {
+        mState = STATE_PAUSE;
+    }
+
+    public void onFinish() {
+        mState = STATE_FINISH;
+    }
+
+    public void onResume() {
+        /*int startLineIndex = 0;
+        System.out.println("updateTime:" + updateTime);
+        for (int i = 0; i < data.getData().size(); i++) {
+            long lineDisappearTime = (long)(((mWidth + data.getData().get(i).getLineWidth()) / mSpeed + data.getData().get(i).getAppearTime()) * 1000);
+            if (lineDisappearTime > updateTime) {
+                startLineIndex = i;
+                break;
+            }
+        }
+        lines.clear();
+        lines.addAll(data.getData().subList(startLineIndex, data.getData().size()));
+        System.out.println("startlineIndex:" + startLineIndex + "-------size:" + lines.size());*/
+        mState = STATE_RUNNING;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public int getmState() {
+        return mState;
+    }
+
+
 }
