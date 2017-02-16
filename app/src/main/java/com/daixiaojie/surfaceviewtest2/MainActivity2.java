@@ -19,7 +19,7 @@ public class MainActivity2 extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         pbtnControll = (PlayButton) findViewById(R.id.pbtn_activity_main2);
-        pbtnControll.setStatus(PlayButton.RecordStatus.RUNNING);
+        pbtnControll.setStatus(PlayButton.RecordStatus.DOWNLOADING);
         DownloadTimeCount timeCount = new DownloadTimeCount(120000, 100);
         timeCount.start();
     }

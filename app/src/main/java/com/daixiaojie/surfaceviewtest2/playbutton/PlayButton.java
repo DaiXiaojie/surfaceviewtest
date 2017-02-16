@@ -9,7 +9,6 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.daixiaojie.surfaceviewtest2.R;
 
@@ -63,7 +62,7 @@ public class PlayButton extends View {
         paint.setFilterBitmap(true);//对位图进行滤波处理
         paint.setDither(true);
         obtainAttributes(context, attrs);
-        String heightStr = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "layout_height");
+        /*String heightStr = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "layout_height");
         String widthStr = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "layout_width");
         if (heightStr.equals(ViewGroup.LayoutParams.MATCH_PARENT + "")) {
         } else if (heightStr.equals(ViewGroup.LayoutParams.WRAP_CONTENT + "")) {
@@ -83,6 +82,7 @@ public class PlayButton extends View {
         }
         width = width > height ? height : width;
         height = height > width ? width : height;
+        */
         status = RecordStatus.DOWNLOADING;
     }
 
@@ -102,6 +102,8 @@ public class PlayButton extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        width = getWidth() > getHeight() ? getHeight() : getWidth();
+        height = getHeight() > getWidth() ? getWidth() : getHeight();
         paint.setAntiAlias(true);
 //        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         radius = width / 2;
@@ -121,7 +123,8 @@ public class PlayButton extends View {
                 drawButton(canvas);
                 break;
             case PAUSE:
-
+                drawRing(canvas);
+                drawButton(canvas);
                 break;
             case FINISH:
 
@@ -156,10 +159,12 @@ public class PlayButton extends View {
         } else if (status == RecordStatus.START) {
             canvas.drawCircle(width / 2, height / 2, radius, paint);
         } else if (status == RecordStatus.RUNNING) {
-            float btnWidth = width - (ringRecordWidth + dp2px(5)) * 2;
+            float btnWidth = width - (ringRecordWidth + dp2px(12)) * 2;
             float btnHeight = btnWidth;
             RectF rect = new RectF(width / 2 - btnWidth / 2, height / 2 - btnHeight / 2, width / 2 + btnWidth / 2, height / 2 + btnHeight / 2);
             canvas.drawRoundRect(rect, dp2px(6), dp2px(6), paint);
+        } else if (status == RecordStatus.PAUSE) {
+            canvas.drawCircle(width / 2, height / 2, radius - ringRecordWidth - dp2px(2), paint);
         }
     }
 
@@ -167,7 +172,7 @@ public class PlayButton extends View {
         float progressWidth = 0f;
         if (status == RecordStatus.DOWNLOADING) {
             progressWidth = ringDownloadWidth;
-        } else if (status == RecordStatus.RUNNING) {
+        } else if (status == RecordStatus.RUNNING || status == RecordStatus.PAUSE) {
             progressWidth = ringRecordWidth;
         }
         paint.setStyle(Paint.Style.STROKE);
