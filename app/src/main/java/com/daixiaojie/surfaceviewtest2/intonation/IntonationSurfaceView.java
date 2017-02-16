@@ -6,9 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -34,7 +37,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
 
     private int mState;
 
-    public static final Boolean IS_DEBUG = true;
+    public static final Boolean IS_DEBUG = false;
 
     private long frameNum;
 
@@ -76,7 +79,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
      * 音准线
      */
     private IntonationLine line;
-//    private Bitmap lineBitmap;
+    //    private Bitmap lineBitmap;
     private RectF rect;
     private int lineWidth;
 
@@ -98,12 +101,16 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
 
     private long updateTime;
 
+    private int currentCents;
+
     public IntonationSurfaceView(Context context) {
         this(context, null);
     }
 
     public IntonationSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setLayerType(LAYER_TYPE_HARDWARE, null);
+
         mHolder = getHolder();
         mHolder.addCallback(this);
 
@@ -129,7 +136,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void initBitmaps() {
-        mBg = loadImageByResId(R.mipmap.bg);
+        mBg = loadImageByResId(R.mipmap.test_intonation_bg);
         indBitmap = loadImageByResId(R.mipmap.chart_work_play);
     }
 
@@ -153,7 +160,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     @Override
     public void run() {
         // 火花数组
-        int[][] sparks = new int[400][10];
+        int[][] sparks = new int[100][10];
 //        startTime = System.currentTimeMillis();
         while (isRunning) {
             long start = System.currentTimeMillis();
@@ -209,27 +216,42 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private void drawSpark(int[][] sparks) {
         // 循环绘制所有火花
         sparkManager.isActive = true;
-        for (int[] n : sparks)
-        {
-            n = sparkManager.drawSpark(mCanvas, mWidth / 8, indicator.getY() + indicator.getmHeight() / 2, n, mWidth);
+        for (int[] n : sparks) {
+            n = sparkManager.drawSpark(mCanvas, mWidth / 8, indicator.getY() + indicator.getmHeight() / 2, n, mWidth / 2);
         }
         sparkManager.isActive = false;
     }
 
     private void drawline(long updateTime) {
         if (mState == STATE_RUNNING || mState == STATE_PAUSE) {
-            int i = 0;
             for (IntonationLine line : lines) {
-                if (updateTime >= (line.getAppearTime() * 1000)){
-               /* if (i == 0)
-                System.out.println("jinlaile222：" + line.getX() + "--" + updateTime + "---" + line.getAppearTime() + "--" + mSpeed + "--" + mWidth);*/
-                    int x = mWidth - (int)((updateTime * 0.001 - line.getAppearTime())*1.0*mSpeed);
-                    if (i == 0)
-                        System.out.println("x:" + x + "--" + "time:" + (updateTime * 0.001 - line.getAppearTime()));
+                if (updateTime >= (line.getAppearTime() * 1000)) {
+                    int x = mWidth - (int) ((updateTime * 0.001 - line.getAppearTime()) * 1.0 * mSpeed);
                     line.setX(x);
-//                System.out.println("jinlaile：" + line.getX());
+//                    boolean ishah = updateTime >= line.getStart_time() && updateTime < (line.getStart_time()+ line.getDuration());
+//                    System.out.println("ishaha" + ishah + "--" + updateTime + "--" + line.getStart_time() + "--" + line.getDuration());
+                    if (updateTime >= (line.getStart_time() * 1000) && updateTime < ((line.getStart_time() + line.getDuration()) * 1000)) {
+                        if (currentCents <= line.getCents() && currentCents >= (line.getCents() - 100)) {
+                         /*   System.out.println("updateTime:" + updateTime
+                                    + "--startTime:" + line.getStart_time()
+                                    + "--duration:" + line.getDuration()
+                                    + "--currentCents:" + currentCents
+                                    + "--cents:" + line.getCents()
+                                    + "--x:" + line.getX()
+                                    + "--appear:" + line.getAppearTime()
+                                    + "--width:" + mWidth
+                                    + "--speed" + mSpeed);
+                            System.out.println("准了！！！");*/
+                            line.setColor(Color.RED);
+                        }
+
+                    } else {
+                        if (line.getColor() != Color.RED) {
+                            line.setColor(Color.WHITE);
+                        }
+                    }
+//                    mPaint.setColor(Color.WHITE);
                     line.draw(mCanvas, mPaint);
-                    i++;
                 } else {
                     break;
                 }
@@ -244,7 +266,25 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void drawBg() {
-        mCanvas.drawBitmap(mBg, null, areaRect, null);
+//        mCanvas.drawBitmap(mBg, null, areaRect, null);
+        Paint bgPaint = new Paint();
+        bgPaint.setStyle(Paint.Style.FILL);
+        bgPaint.setAntiAlias(true);
+        bgPaint.setFilterBitmap(true);//对位图进行滤波处理
+        bgPaint.setDither(true);
+
+        mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        RectF rect = new RectF(getX() + mWidth / 8, getY(), getX() + mWidth, getY() + mHeight);
+        bgPaint.setColor(0x22000000);
+        mCanvas.drawRect(rect, bgPaint);
+
+        //新建一个线性渐变，前两个参数是渐变开始的点坐标，第三四个参数是渐变结束的点的坐标。
+        bgPaint.setColor(0xFFFF0000);
+        Shader shader = new LinearGradient(getX() + mWidth/8, getY(),getX(),getY(),new int[] {0x99FF0000, 0x22FF0000},null,Shader.TileMode.CLAMP);
+        bgPaint.setShader(shader);
+        RectF rect2 = new RectF(getX(), getY(), getX() + mWidth / 8, getY() + mHeight);
+        mCanvas.drawRect(rect2, bgPaint);
+
     }
 
     private void logic() {
@@ -252,7 +292,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void logicLine() {
-       /* if (mState == STATE_RUNNING) {
+        /*if (mState == STATE_RUNNING) {
             for (IntonationLine line : lines) {
                 if (line.getX() < -line.getLineWidth()) {
                     mNeedRemovelines.add(line);
@@ -264,6 +304,15 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
             lines.removeAll(mNeedRemovelines);
             mNeedRemovelines.clear();
         }*/
+        if (mState == STATE_RUNNING) {
+            for (IntonationLine line : lines) {
+                if (line.getX() < -line.getLineWidth()) {
+                    line.setColor(Color.WHITE);
+                    continue;
+                }
+            }
+
+        }
     }
 
     /**
@@ -282,19 +331,20 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         mWidth = w;
         mHeight = h;
         areaRect.set(0, 0, w, h);
-        indicator = new Indicator(getContext(), (int)getX(), (int)getY(), mWidth, mHeight, indBitmap);
+        indicator = new Indicator(getContext(), (int) getX(), (int) getY(), mWidth, mHeight, indBitmap);
     }
 
     public void getCurrentCents(int currentCents) {
         if ((minCents > 0) && (maxCents >= minCents)) {
+            this.currentCents = currentCents;
             currentCents = currentCents > maxCents ? maxCents : currentCents;
             currentCents = currentCents < minCents ? minCents : currentCents;
-            System.out.println("currentCents:"  + currentCents + "---Y:" + Util.getY(currentCents, mWidth, minCents, maxCents));
+            System.out.println("currentCents:" + currentCents + "---Y:" + Util.getY(currentCents, mWidth, minCents, maxCents));
             int targetY = Util.getY(currentCents, mHeight, minCents, maxCents);
-            targetY = targetY < (int)getY() ? (int)getY() : targetY;
-            targetY = targetY > (int)getY() + mHeight - indicator.getmHeight() ? (int)getY() + mHeight - indicator.getmHeight(): targetY;
+            targetY = targetY < (int) getY() ? (int) getY() : targetY;
+            targetY = targetY > (int) getY() + mHeight - indicator.getmHeight() ? (int) getY() + mHeight - indicator.getmHeight() : targetY;
             System.out.println("targetY:" + targetY);
-            int duration = 300;
+            int duration = 200;
             ValueAnimator valueAnimator = ValueAnimator.ofFloat(indicator.getY(), targetY);
             valueAnimator.setDuration(duration).start();
             valueAnimator.setInterpolator(new DecelerateInterpolator());
@@ -303,8 +353,8 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float value = (Float) animation.getAnimatedValue();
 //                    if (value < (int)getY() + mHeight - indicator.getmHeight() && value > (int)getY()) {
-                        System.out.println("value:" + (int)value);
-                        indicator.setY((int)value);
+                    System.out.println("value:" + (int) value);
+                    indicator.setY((int) value);
 //                    }
                 }
             });
@@ -324,7 +374,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         }
         System.out.println("speed:" + mSpeed);
         for (IntonationLine line : this.data.getData()) {
-            lines.add(new IntonationLine(mWidth,mHeight,data.getCents_min(), data.getCents_max(), mSpeed, line));
+            lines.add(new IntonationLine(mWidth, mHeight, data.getCents_min(), data.getCents_max(), mSpeed, line));
         }
         this.data.getData().clear();
         this.data.getData().addAll(lines);//装载成本地化后的lines数据
@@ -349,8 +399,9 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
             }
         }
         lines.clear();
+//        lines.addAll(data.getData());
         lines.addAll(data.getData().subList(startLineIndex, data.getData().size()));
-        System.out.println("startlineIndex:" + startLineIndex + "-------size:" + lines.size());*/
+        System.out.println("startlineIndex:" + startLineIndex + "-------size:" + lines.size() + "line.1:" + lines.get(0).getStart_time() + "---" + updateTime);*/
         mState = STATE_RUNNING;
     }
 

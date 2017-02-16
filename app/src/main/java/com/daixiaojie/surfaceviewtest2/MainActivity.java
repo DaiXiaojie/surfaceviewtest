@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.daixiaojie.surfaceviewtest2.intonation.IntonationSurfaceView;
 import com.daixiaojie.surfaceviewtest2.intonation.LineBean;
+import com.daixiaojie.surfaceviewtest2.playbutton.PlayButton;
 
 import java.util.Random;
 
@@ -22,8 +23,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
     private TimeCount timeCount;
     private SongPlayTimeCount songPlayTimeCount;
     private long playTimeCount;
-    private Button btnStart, btnRestart, btnFinish;
+    private Button btnStart, btnRestart, btnFinish, btnShow, btnHide;
     private SeekBar seekBar;
+    private PlayButton pbtnControll;
+    private int progress = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,19 +48,30 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
         btnStart = (Button) findViewById(R.id.btn_startorpause_acitvity_main);
         btnRestart = (Button) findViewById(R.id.btn_restart_acitvity_main);
         btnFinish = (Button) findViewById(R.id.btn_finish_acitvity_main);
+        btnShow = (Button) findViewById(R.id.btn_show_intonation);
+        btnHide = (Button) findViewById(R.id.btn_hide_intonation);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
+        pbtnControll = (PlayButton) findViewById(R.id.pbtn_activity_main);
         btnStart.setOnClickListener(this);
+        btnShow.setOnClickListener(this);
+        btnHide.setOnClickListener(this);
         btnRestart.setOnClickListener(this);
         btnFinish.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
+
+
+        pbtnControll.setStatus(PlayButton.RecordStatus.START);
+        DownloadTimeCount timeCount = new DownloadTimeCount(100000, 1000);
+        timeCount.start();
     }
+
 
     private void userVoiceCents(boolean isOpen) {
         if (timeCount != null) {
             timeCount.cancel();
         }
         if (isOpen) {
-            timeCount = new TimeCount(SONG_TIME_COUNT, 300);
+            timeCount = new TimeCount(SONG_TIME_COUNT, 200);
             timeCount.start();
         }
     }
@@ -88,6 +102,13 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
                 break;
             case R.id.btn_finish_acitvity_main:
                 finishPlay();
+                break;
+
+            case R.id.btn_show_intonation:
+                intonationSurfaceView.setVisibility(View.VISIBLE);
+                break;
+            case R.id.btn_hide_intonation:
+                intonationSurfaceView.setVisibility(View.GONE);
                 break;
         }
     }
@@ -156,8 +177,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        playTimeCount = seekBar.getProgress() * SONG_TIME_COUNT / 100;
+        playTimeCount = (long) (seekBar.getProgress() * SONG_TIME_COUNT * 1.0 / 100.0);
 //        intonationSurfaceView.setUpdateTime(playTimeCount);
+//        System.out.println("playTimecount:" + playTimeCount);
         resumePlay(SONG_TIME_COUNT - playTimeCount);
     }
 
@@ -201,6 +223,22 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
             playTimeCount = SONG_TIME_COUNT - millisUntilFinished;
             intonationSurfaceView.setUpdateTime(SONG_TIME_COUNT - millisUntilFinished);
             seekBar.setProgress((int) (playTimeCount * 100 / SONG_TIME_COUNT));
+        }
+    }
+    class DownloadTimeCount extends CountDownTimer {
+        public DownloadTimeCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onFinish() {//计时完毕时触发
+
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            progress = progress + 1;
+            pbtnControll.setProgress(progress);
         }
     }
 }

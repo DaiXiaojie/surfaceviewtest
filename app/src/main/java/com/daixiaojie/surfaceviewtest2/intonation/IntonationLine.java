@@ -22,6 +22,8 @@ public class IntonationLine {
     private double duration;
     private int collected_status;
 
+    private int color;
+
 
     public IntonationLine(){
 
@@ -36,12 +38,13 @@ public class IntonationLine {
         setCollected_status(baseLine.getCollected_status());
         x = intonationWidth;
         y = Util.getY(cents,intonationHeight, minCents, maxCents);
-        appearTime = start_time - ((intonationHeight * 7) / (speed * 8));
+        appearTime = start_time - ((intonationWidth * 7.0) / (speed * 8.0));
         this.lineWidth = (int)(duration * speed);
         this.lineHeight = Util.getLineHeight(intonationHeight, minCents, maxCents);
     }
 
     public void draw(Canvas canvas, Paint paint) {
+        paint.setColor(color);
         canvas.save(Canvas.MATRIX_SAVE_FLAG);
         canvas.drawRect(x, y, x + lineWidth, y + lineHeight, paint);
         canvas.restore();
@@ -134,5 +137,13 @@ public class IntonationLine {
 
     public void setAppearTime(double appearTime) {
         this.appearTime = appearTime;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }

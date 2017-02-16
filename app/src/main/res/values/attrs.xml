@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="PlayButton">
+        <attr name="playbutton_radius" format="dimension" />
+        <attr name="playbutton_ringdownloadwidth" format="dimension" />
+        <attr name="playbutton_ringrecordwidth" format="dimension" />
+        <attr name="playbutton_buttoncolor" format="color" />
+        <attr name="playbutton_ringprecolor" format="color" />
+        <attr name="playbutton_ringprogresscolor" format="color" />
+        <attr name="playbutton_textsize" format="dimension" />
+        <attr name="playbutton_textcolor" format="color" />
+        <attr name="playbutton_progress" format="integer" />
+    </declare-styleable>
+</resources>
