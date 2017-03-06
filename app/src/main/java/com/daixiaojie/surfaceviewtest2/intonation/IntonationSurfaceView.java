@@ -94,7 +94,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     private Data data;
     private List<IntonationLine> lines;
 
-    private int mSpeed = Util.dp2px(getContext(), 180);
+    private int mSpeed = Util.dp2px(getContext(), 120);
 
     private List<IntonationLine> mNeedRemovelines = new LinkedList<>();
     private int needRemoveLineCount = 0;
@@ -209,7 +209,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
     }
 
     private void drawSplitLine() {
-        RectF rect = new RectF(mWidth / 8, getY(), mWidth / 8 + 4, mHeight);
+        RectF rect = new RectF(mWidth / 8, 0, mWidth / 8 + 4, mHeight);
         mCanvas.drawRect(rect, mPaint);
     }
 
@@ -274,7 +274,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         bgPaint.setDither(true);
 
         mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        RectF rect = new RectF(getX() + mWidth / 8, getY(), getX() + mWidth, getY() + mHeight);
+        RectF rect = new RectF(getX() + mWidth / 8, 0, getX() + mWidth, mHeight);
         bgPaint.setColor(0x22000000);
         mCanvas.drawRect(rect, bgPaint);
 
@@ -282,7 +282,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
         bgPaint.setColor(0xFFFF0000);
         Shader shader = new LinearGradient(getX() + mWidth/8, getY(),getX(),getY(),new int[] {0x99FF0000, 0x22FF0000},null,Shader.TileMode.CLAMP);
         bgPaint.setShader(shader);
-        RectF rect2 = new RectF(getX(), getY(), getX() + mWidth / 8, getY() + mHeight);
+        RectF rect2 = new RectF(getX(), 0, getX() + mWidth / 8, mHeight);
         mCanvas.drawRect(rect2, bgPaint);
 
     }
@@ -358,6 +358,7 @@ public class IntonationSurfaceView extends SurfaceView implements SurfaceHolder.
 //                    }
                 }
             });
+            valueAnimator.cancel();
 //            indicator.setY((int)value);
         }
     }

@@ -1,5 +1,7 @@
 package com.daixiaojie.surfaceviewtest2.playbutton;
 
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -32,12 +34,16 @@ public class PlayButton extends View {
     private int buttonColor;  // 中心控制区颜色
     private int ringPreColor; //进度条预加载颜色
     private int ringProgressColor;  //进度条填充颜色
+    private float paddingWidth;  //空隙宽度
 
 
     private int textSize;  //字体大小
     private int textColor;  //字体颜色
 
     private int progress; //0-100
+
+    float btnWidth;
+    float btnHeight;
 
     private RecordStatus status = RecordStatus.DOWNLOADING;
 
@@ -62,27 +68,7 @@ public class PlayButton extends View {
         paint.setFilterBitmap(true);//对位图进行滤波处理
         paint.setDither(true);
         obtainAttributes(context, attrs);
-        /*String heightStr = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "layout_height");
-        String widthStr = attrs.getAttributeValue("http://schemas.android.com/apk/res/android", "layout_width");
-        if (heightStr.equals(ViewGroup.LayoutParams.MATCH_PARENT + "")) {
-        } else if (heightStr.equals(ViewGroup.LayoutParams.WRAP_CONTENT + "")) {
-        } else {
-            int[] systemAttrs = {android.R.attr.layout_height};
-            TypedArray a = context.obtainStyledAttributes(attrs, systemAttrs);
-            height = a.getDimensionPixelSize(0, ViewGroup.LayoutParams.WRAP_CONTENT);
-            a.recycle();
-        }
-        if (widthStr.equals(ViewGroup.LayoutParams.MATCH_PARENT + "")) {
-        } else if (widthStr.equals(ViewGroup.LayoutParams.WRAP_CONTENT + "")) {
-        } else {
-            int[] systemAttrs = {android.R.attr.layout_width};
-            TypedArray a = context.obtainStyledAttributes(attrs, systemAttrs);
-            width = a.getDimensionPixelSize(0, ViewGroup.LayoutParams.WRAP_CONTENT);
-            a.recycle();
-        }
-        width = width > height ? height : width;
-        height = height > width ? width : height;
-        */
+        paddingWidth = dp2px(14);
         status = RecordStatus.DOWNLOADING;
     }
 
@@ -105,8 +91,6 @@ public class PlayButton extends View {
         width = getWidth() > getHeight() ? getHeight() : getWidth();
         height = getHeight() > getWidth() ? getWidth() : getHeight();
         paint.setAntiAlias(true);
-//        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        radius = width / 2;
         switch (status) {
             case DOWNLOADING:
                 drawRing(canvas);
@@ -137,7 +121,7 @@ public class PlayButton extends View {
         String text = "";
         if (status == RecordStatus.DOWNLOADING) {
             text = progress + "%";
-        } else if (status == RecordStatus.START){
+        } else if (status == RecordStatus.START) {
             text = "START";
             paint.setTypeface(Typeface.DEFAULT_BOLD);
         }
@@ -155,16 +139,17 @@ public class PlayButton extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(buttonColor);
         if (status == RecordStatus.DOWNLOADING) {
-            canvas.drawCircle(width / 2, height / 2, radius - ringDownloadWidth - dp2px(2), paint);
+            canvas.drawCircle(width / 2, height / 2, width / 2 - ringDownloadWidth - dp2px(2), paint);
         } else if (status == RecordStatus.START) {
-            canvas.drawCircle(width / 2, height / 2, radius, paint);
+            canvas.drawCircle(width / 2, height / 2, width / 2, paint);
         } else if (status == RecordStatus.RUNNING) {
-            float btnWidth = width - (ringRecordWidth + dp2px(12)) * 2;
-            float btnHeight = btnWidth;
             RectF rect = new RectF(width / 2 - btnWidth / 2, height / 2 - btnHeight / 2, width / 2 + btnWidth / 2, height / 2 + btnHeight / 2);
-            canvas.drawRoundRect(rect, dp2px(6), dp2px(6), paint);
+            System.out.println("width1:" + btnWidth + "--radius:" + radius);
+            canvas.drawRoundRect(rect, radius, radius, paint);
         } else if (status == RecordStatus.PAUSE) {
-            canvas.drawCircle(width / 2, height / 2, radius - ringRecordWidth - dp2px(2), paint);
+            RectF rect = new RectF(width / 2 - btnWidth / 2, height / 2 - btnHeight / 2, width / 2 + btnWidth / 2, height / 2 + btnHeight / 2);
+            System.out.println("width2:" + btnWidth + "--radius:" + radius);
+            canvas.drawRoundRect(rect, radius, radius, paint);
         }
     }
 
@@ -204,7 +189,41 @@ public class PlayButton extends View {
 
     public void setStatus(RecordStatus status) {
         this.status = status;
-        invalidate();
+        if (status == RecordStatus.PAUSE || status == RecordStatus.RUNNING) {
+            float nowRadius = 0f;
+            float targetRadius = 0f;
+            float nowPadding = 0f;
+            float targetPadding = 0f;
+            if (status == RecordStatus.PAUSE) {
+                nowRadius = dp2px(6);
+                targetRadius = width / 2 - ringRecordWidth - dp2px(2);
+                nowPadding = dp2px(12);
+                targetPadding = dp2px(2);
+            } else if (status == RecordStatus.RUNNING){
+                targetRadius = dp2px(6);
+                nowRadius = width / 2 - ringRecordWidth - dp2px(2);
+                nowPadding = dp2px(2);
+                targetPadding = dp2px(12);
+            }
+            PropertyValuesHolder pvhRadius = PropertyValuesHolder.ofFloat("radius", nowRadius, targetRadius);
+            PropertyValuesHolder pvhPadding = PropertyValuesHolder.ofFloat("padding", nowPadding, targetPadding);
+            ValueAnimator ani = ValueAnimator
+                    .ofPropertyValuesHolder(pvhRadius, pvhPadding)
+                    .setDuration(500);
+            ani.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    radius = (float) animation.getAnimatedValue("radius");
+                    paddingWidth = (float) animation.getAnimatedValue("padding");
+                    btnWidth = width - (ringRecordWidth + paddingWidth) * 2;
+                    btnHeight = btnWidth;
+                    invalidate();
+                }
+            });
+            ani.start();
+        } else {
+            invalidate();
+        }
     }
 
     public RecordStatus getStatus() {

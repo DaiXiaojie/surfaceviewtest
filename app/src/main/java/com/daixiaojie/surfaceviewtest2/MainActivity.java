@@ -20,6 +20,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
 
     RelativeLayout relativeLayout;
     private IntonationSurfaceView intonationSurfaceView;
+    private RecordCountDownPoint recordCountDownPoint;
     private TimeCount timeCount;
     private SongPlayTimeCount songPlayTimeCount;
     private long playTimeCount;
@@ -51,6 +52,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
         btnShow = (Button) findViewById(R.id.btn_show_intonation);
         btnHide = (Button) findViewById(R.id.btn_hide_intonation);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
+        recordCountDownPoint = (RecordCountDownPoint) findViewById(R.id.tcdp_activity_main);
         pbtnControll = (PlayButton) findViewById(R.id.pbtn_activity_main);
         btnStart.setOnClickListener(this);
         btnShow.setOnClickListener(this);
@@ -60,9 +62,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
         seekBar.setOnSeekBarChangeListener(this);
 
 
-        pbtnControll.setStatus(PlayButton.RecordStatus.START);
-        DownloadTimeCount timeCount = new DownloadTimeCount(100000, 1000);
-        timeCount.start();
     }
 
 
@@ -101,7 +100,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Seek
                 restartPlay();
                 break;
             case R.id.btn_finish_acitvity_main:
-                finishPlay();
+//                finishPlay();
+                recordCountDownPoint.show(RecordCountDownPoint.COUNTDOWN_TIME);
                 break;
 
             case R.id.btn_show_intonation:
